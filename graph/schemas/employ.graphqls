@@ -1,0 +1,33 @@
+type Empleado {
+  dni: String
+  nombre: String!
+  ingreso: String
+  area: String
+  cargo: String
+  regimen: String
+  horario: String
+}
+
+input EmployI {
+  dni: String
+  nombre: String!
+  ingreso: String
+  onomastico: String
+  cargo: String
+  sueldo: String
+}
+
+type EmployForRegimen {
+  regimen: String!
+  cantidad: Int!
+}
+
+extend type Query {
+  empleadoByDNI(dni: String): Empleado
+  empleados_regimen: [EmployForRegimen]
+  empleados_search(nombre: String): [Empleado]
+}
+extend type Mutation {
+  crear_empleado(input: EmployI): Empleado
+  borrar_empleado(dni: String): Boolean
+}

@@ -1,0 +1,15 @@
+type User {
+  id: Int
+  username: String
+  password: String
+  isadmin: Boolean
+}
+
+type Token {
+  token: String
+  admin: String
+}
+
+extend type Query {
+  login(username: String, password: String): Token
+}

@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "municipal"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-xlyua4z7l1ed"
+s3_prefix = "municipal"
+region = "sa-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

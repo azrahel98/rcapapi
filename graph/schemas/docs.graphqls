@@ -1,0 +1,42 @@
+type Papeleta {
+  id: Int
+  nombre: String
+  fecha: String
+  empleado: String
+  tipoper: String
+  descrip: String
+  detalle: String
+  retorno: RetornoPa
+}
+
+input PapeletaInput {
+  nombre: String!
+  fecha: String!
+  empleado: String!
+  tipoP: PermisosPapeleta!
+  descrip: String!
+  detalle: String!
+  retorno: RetornoPa!
+}
+
+enum RetornoPa {
+  Y
+  N
+}
+
+enum PermisosPapeleta {
+  DF
+  AC
+  JUSTIFICADO
+  OMISION
+  DFXHEL
+  ONOMASTICO
+}
+
+extend type Query {
+  buscar_papeleta(dni: String): Papeleta #ok
+}
+
+type Mutation {
+  crear_papeleta(input: PapeletaInput): Papeleta #OK
+}

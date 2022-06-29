@@ -1,0 +1,14 @@
+type Asistencia {
+  fecha: String
+  dni: String
+  hora: String
+  reloj: String
+}
+
+extend type Mutation {
+  create_token(dni: String, mes: Int): String
+}
+
+extend type Query {
+  buscar_asistencia(dni: String, mes: Int): [Asistencia]
+}

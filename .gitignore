@@ -1,0 +1,7 @@
+.env
+tmp/
+.aws-sam
+Makefile
+*.sql
+.template.*
+template.*
