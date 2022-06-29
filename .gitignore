@@ -5,3 +5,6 @@ Makefile
 *.sql
 .template.*
 template.*
+.air.toml
+test.sql
+*.sql
