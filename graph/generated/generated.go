@@ -47,6 +47,8 @@ type ComplexityRoot struct {
 		Dni   func(childComplexity int) int
 		Fecha func(childComplexity int) int
 		Hora  func(childComplexity int) int
+		Hora2 func(childComplexity int) int
+		Hora3 func(childComplexity int) int
 		Reloj func(childComplexity int) int
 	}
 
@@ -155,6 +157,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Asistencia.Hora(childComplexity), true
+
+	case "Asistencia.hora2":
+		if e.complexity.Asistencia.Hora2 == nil {
+			break
+		}
+
+		return e.complexity.Asistencia.Hora2(childComplexity), true
+
+	case "Asistencia.hora3":
+		if e.complexity.Asistencia.Hora3 == nil {
+			break
+		}
+
+		return e.complexity.Asistencia.Hora3(childComplexity), true
 
 	case "Asistencia.reloj":
 		if e.complexity.Asistencia.Reloj == nil {
@@ -513,6 +529,8 @@ var sources = []*ast.Source{
   fecha: String
   dni: String
   hora: String
+  hora2: String
+  hora3: String
   reloj: String
 }
 
@@ -950,6 +968,88 @@ func (ec *executionContext) _Asistencia_hora(ctx context.Context, field graphql.
 }
 
 func (ec *executionContext) fieldContext_Asistencia_hora(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Asistencia",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Asistencia_hora2(ctx context.Context, field graphql.CollectedField, obj *model.Asistencia) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Asistencia_hora2(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Hora2, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Asistencia_hora2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Asistencia",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Asistencia_hora3(ctx context.Context, field graphql.CollectedField, obj *model.Asistencia) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Asistencia_hora3(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Hora3, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Asistencia_hora3(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Asistencia",
 		Field:      field,
@@ -1993,6 +2093,10 @@ func (ec *executionContext) fieldContext_Query_buscar_asistencia(ctx context.Con
 				return ec.fieldContext_Asistencia_dni(ctx, field)
 			case "hora":
 				return ec.fieldContext_Asistencia_hora(ctx, field)
+			case "hora2":
+				return ec.fieldContext_Asistencia_hora2(ctx, field)
+			case "hora3":
+				return ec.fieldContext_Asistencia_hora3(ctx, field)
 			case "reloj":
 				return ec.fieldContext_Asistencia_reloj(ctx, field)
 			}
@@ -4635,6 +4739,14 @@ func (ec *executionContext) _Asistencia(ctx context.Context, sel ast.SelectionSe
 		case "hora":
 
 			out.Values[i] = ec._Asistencia_hora(ctx, field, obj)
+
+		case "hora2":
+
+			out.Values[i] = ec._Asistencia_hora2(ctx, field, obj)
+
+		case "hora3":
+
+			out.Values[i] = ec._Asistencia_hora3(ctx, field, obj)
 
 		case "reloj":
 

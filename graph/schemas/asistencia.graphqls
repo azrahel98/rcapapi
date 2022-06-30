@@ -2,6 +2,8 @@ type Asistencia {
   fecha: String
   dni: String
   hora: String
+  hora2: String
+  hora3: String
   reloj: String
 }
 

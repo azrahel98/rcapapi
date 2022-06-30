@@ -12,6 +12,8 @@ type Asistencia struct {
 	Fecha *string `json:"fecha"`
 	Dni   *string `json:"dni"`
 	Hora  *string `json:"hora"`
+	Hora2 *string `json:"hora2"`
+	Hora3 *string `json:"hora3"`
 	Reloj *string `json:"reloj"`
 }
 

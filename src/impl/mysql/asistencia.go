@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"database/sql"
-	"log"
 	"strconv"
 
 	"villas.com/src/modelos"
@@ -12,7 +11,6 @@ import (
 type AsistenciaImpl struct{}
 
 func (a AsistenciaImpl) Buscar_Asistencia(dni string, mes int) ([]*modelos.Asistencia, error) {
-	log.Println(dni, mes)
 	db, _ := service.GetInstance()
 	var data []*modelos.Asistencia
 	err := db.Query("select IFNULL(dni,'NA') dni ,IFNULL(nombre,'NA')nombre ,IFNULL(hora,'NA') hora ,IFNULL(fecha,'NA') , IFNULL(reloj,'NA') reloj  from Asiste a where dni = ? and MONTH (fecha) = ?",
@@ -30,7 +28,6 @@ func (a AsistenciaImpl) Buscar_Asistencia(dni string, mes int) ([]*modelos.Asist
 	if err != nil {
 		return nil, err
 	}
-	log.Println(data)
 	return data, nil
 }
 
