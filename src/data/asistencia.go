@@ -36,10 +36,9 @@ func (im AsisteData) BuscarAsistencia(dni string, mes int) ([]*model.Asistencia,
 			Reloj: &v.Equipo,
 		})
 	}
-
-	// return utils.OrdenarDias(result), nil
 	return result, nil
 }
+
 func (im AsisteData) CrearTokenForUser(tok modelos.Token) error {
 	err := im.impl.Token_Check("", tok)
 	if err != nil {

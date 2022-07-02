@@ -5,6 +5,7 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 
 	"villas.com/graph/generated"
 	"villas.com/graph/model"
@@ -26,6 +27,23 @@ func (r *mutationResolver) CrearPapeleta(ctx context.Context, input *model.Papel
 		return nil, err
 	}
 	return result, err
+}
+
+func (r *mutationResolver) CrearDoc(ctx context.Context, input *model.DocInput) (*model.Docs, error) {
+	doc := data.NewDocumentsData(mysql.DocumentsImpl{})
+	err := middleware.GraphQlErrorHandler(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+	if *input.Range && input.Inicio == nil || input.Fin == nil {
+		return nil, errors.New("sin fechas")
+	}
+	d, err := doc.CrearDoc(input, *input.Range)
+	if err != nil {
+		return nil, err
+	}
+
+	return d, nil
 }
 
 func (r *queryResolver) BuscarPapeleta(ctx context.Context, dni *string) (*model.Papeleta, error) {

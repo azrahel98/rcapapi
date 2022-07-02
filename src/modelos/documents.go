@@ -10,3 +10,16 @@ type Papeleta struct {
 	Detalle string
 	Retorno string
 }
+
+type Docs struct {
+	Id      int
+	Dni     string
+	Doc     string
+	Fecha   string
+	Tipo    string
+	Permi   string
+	Descrip string
+	Ref     string
+	Inicio  string
+	Fin     string
+}

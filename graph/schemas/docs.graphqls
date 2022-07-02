@@ -9,6 +9,32 @@ type Papeleta {
   retorno: RetornoPa
 }
 
+type Docs {
+  id: Int
+  dni: String
+  doc: String
+  fecha: String
+  tipo: TiposDocs
+  permiso: PermisosDoc
+  descrip: String
+  Ref: String
+  Inicio: String
+  Fin: String
+}
+
+input DocInput {
+  dni: String
+  doc: String
+  fecha: String
+  tipo: TiposDocs
+  permiso: PermisosDoc
+  descrip: String
+  Ref: String
+  Inicio: String
+  Fin: String
+  range: Boolean
+}
+
 input PapeletaInput {
   nombre: String!
   fecha: String!
@@ -22,6 +48,29 @@ input PapeletaInput {
 enum RetornoPa {
   Y
   N
+}
+
+enum TiposDocs {
+  RESOLUCION
+  CARTA
+  INFORME
+  RENUNCIA
+  SOLICITUD
+  MEMORANDO
+}
+
+enum PermisosDoc {
+  DF
+  AC
+  JUSTIFICADO
+  XHEL
+  ONOMASTICO
+  ADELANTO
+  SANSION
+  LICENCIA
+  HORASEXTRAS
+  OMISION
+  OTROS
 }
 
 enum PermisosPapeleta {
@@ -39,4 +88,5 @@ extend type Query {
 
 type Mutation {
   crear_papeleta(input: PapeletaInput): Papeleta #OK
+  crear_doc(input: DocInput): Docs
 }

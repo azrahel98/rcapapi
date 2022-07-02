@@ -39,6 +39,61 @@ func (d DocumentsData) CrearPapeleta(e model.PapeletaInput) (*model.Papeleta, er
 	}, err
 }
 
+func (d DocumentsData) CrearDoc(e *model.DocInput, rang bool) (*model.Docs, error) {
+	if rang {
+		doc, err := d.impl.Create_Doc(modelos.Docs{
+			Dni:     *e.Dni,
+			Doc:     *e.Doc,
+			Fecha:   *e.Fecha,
+			Tipo:    e.Tipo.String(),
+			Permi:   e.Permiso.String(),
+			Descrip: *e.Descrip,
+			Ref:     *e.Ref,
+			Inicio:  *e.Inicio,
+			Fin:     *e.Fin,
+		}, true)
+		if err != nil {
+			return nil, err
+		}
+		return &model.Docs{
+			ID:      &doc.Id,
+			Dni:     &doc.Dni,
+			Doc:     &doc.Doc,
+			Fecha:   &doc.Fecha,
+			Tipo:    (*model.TiposDocs)(&doc.Tipo),
+			Permiso: (*model.PermisosDoc)(&doc.Permi),
+			Descrip: &doc.Descrip,
+			Ref:     &doc.Ref,
+			Inicio:  &doc.Inicio,
+			Fin:     &doc.Fin,
+		}, err
+	} else {
+		doc, err := d.impl.Create_Doc(modelos.Docs{
+			Dni:     *e.Dni,
+			Doc:     *e.Doc,
+			Fecha:   *e.Fecha,
+			Tipo:    e.Tipo.String(),
+			Permi:   e.Permiso.String(),
+			Descrip: *e.Descrip,
+			Ref:     *e.Ref,
+		}, false)
+		if err != nil {
+			return nil, err
+		}
+		return &model.Docs{
+			ID:      &doc.Id,
+			Dni:     &doc.Dni,
+			Doc:     &doc.Doc,
+			Fecha:   &doc.Fecha,
+			Tipo:    (*model.TiposDocs)(&doc.Tipo),
+			Permiso: (*model.PermisosDoc)(&doc.Permi),
+			Descrip: &doc.Descrip,
+			Ref:     &doc.Ref,
+		}, err
+	}
+
+}
+
 func (d DocumentsData) BuscarDocumentosPorDNI(dni string) (*model.Papeleta, error) {
 	p, err := d.impl.FindByDniPapeletas(dni)
 	if err != nil {
@@ -56,77 +111,3 @@ func (d DocumentsData) BuscarDocumentosPorDNI(dni string) (*model.Papeleta, erro
 	}, err
 
 }
-
-// func (d DocumentsData) UltimosRegistros() ([]*modelos.DocHistory, error) {
-// 	doc, err := d.impl.Historial()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return doc, nil
-// }
-
-// func (d DocumentsData) DocumentosRecibidosxMes(mes int) ([]*modelos.DocsRecibidos, error) {
-// 	docs, err := d.impl.DocumentosRecibidosxMes(mes, 2022)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return docs, nil
-// }
-// func (d DocumentsData) DocumentoPorID(id string) (*modelos.DocsRecibidos, error) {
-// 	docs, err := d.impl.DocumentosRecibidorxID(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return docs, nil
-// }
-
-// func (d DocumentsData) EliminarporId(id int) error {
-// 	err := d.impl.DeleteForID(id)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-// func (d DocumentsData) DocumentosporMesyDNi(mes int, dni string) ([]*modelos.DocsRecibidos, error) {
-// 	data, err := d.impl.DocumentsxMesyDni(mes, dni)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return data, nil
-
-// }
-
-// func (d DocumentsData) ActualizarDocum(doc *model.DocInpt) (*model.Document, error) {
-
-// 	dx, err := d.impl.UpdateDoc(modelos.Documents{
-// 		Id:       *doc.ID,
-// 		Nombre:   doc.Nombre,
-// 		Fecha:    doc.Fecha,
-// 		Empleado: doc.Empleado,
-// 		TipoDoc:  doc.Tipod.String(),
-// 		TipoPer:  doc.TipoP.String(),
-// 		Descrip:  doc.Descrip,
-// 		RefDoc:   doc.Refdoc,
-// 		Detalle:  doc.Detalle,
-// 		Inicio:   doc.Inicio,
-// 		Fin:      doc.Fin,
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &model.Document{
-// 		ID:       &dx.Id,
-// 		Nombre:   &dx.Nombre,
-// 		Fecha:    &dx.Fecha,
-// 		Empleado: &dx.Empleado,
-// 		Tipodoc:  &dx.TipoDoc,
-// 		Tipoper:  &dx.TipoPer,
-// 		Descrip:  &dx.Descrip,
-// 		Refdoc:   &dx.RefDoc,
-// 		Detalle:  &dx.Detalle,
-// 		Inicio:   &dx.Inicio,
-// 		Fin:      &dx.Fin,
-// 	}, nil
-// }

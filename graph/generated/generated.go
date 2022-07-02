@@ -52,6 +52,19 @@ type ComplexityRoot struct {
 		Reloj func(childComplexity int) int
 	}
 
+	Docs struct {
+		Descrip func(childComplexity int) int
+		Dni     func(childComplexity int) int
+		Doc     func(childComplexity int) int
+		Fecha   func(childComplexity int) int
+		Fin     func(childComplexity int) int
+		ID      func(childComplexity int) int
+		Inicio  func(childComplexity int) int
+		Permiso func(childComplexity int) int
+		Ref     func(childComplexity int) int
+		Tipo    func(childComplexity int) int
+	}
+
 	Empleado struct {
 		Area    func(childComplexity int) int
 		Cargo   func(childComplexity int) int
@@ -69,6 +82,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		BorrarEmpleado func(childComplexity int, dni *string) int
+		CrearDoc       func(childComplexity int, input *model.DocInput) int
 		CrearEmpleado  func(childComplexity int, input *model.EmployI) int
 		CrearPapeleta  func(childComplexity int, input *model.PapeletaInput) int
 		CreateToken    func(childComplexity int, dni *string, mes *int) int
@@ -109,6 +123,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CrearPapeleta(ctx context.Context, input *model.PapeletaInput) (*model.Papeleta, error)
+	CrearDoc(ctx context.Context, input *model.DocInput) (*model.Docs, error)
 	CreateToken(ctx context.Context, dni *string, mes *int) (*string, error)
 	CrearEmpleado(ctx context.Context, input *model.EmployI) (*model.Empleado, error)
 	BorrarEmpleado(ctx context.Context, dni *string) (*bool, error)
@@ -178,6 +193,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Asistencia.Reloj(childComplexity), true
+
+	case "Docs.descrip":
+		if e.complexity.Docs.Descrip == nil {
+			break
+		}
+
+		return e.complexity.Docs.Descrip(childComplexity), true
+
+	case "Docs.dni":
+		if e.complexity.Docs.Dni == nil {
+			break
+		}
+
+		return e.complexity.Docs.Dni(childComplexity), true
+
+	case "Docs.doc":
+		if e.complexity.Docs.Doc == nil {
+			break
+		}
+
+		return e.complexity.Docs.Doc(childComplexity), true
+
+	case "Docs.fecha":
+		if e.complexity.Docs.Fecha == nil {
+			break
+		}
+
+		return e.complexity.Docs.Fecha(childComplexity), true
+
+	case "Docs.Fin":
+		if e.complexity.Docs.Fin == nil {
+			break
+		}
+
+		return e.complexity.Docs.Fin(childComplexity), true
+
+	case "Docs.id":
+		if e.complexity.Docs.ID == nil {
+			break
+		}
+
+		return e.complexity.Docs.ID(childComplexity), true
+
+	case "Docs.Inicio":
+		if e.complexity.Docs.Inicio == nil {
+			break
+		}
+
+		return e.complexity.Docs.Inicio(childComplexity), true
+
+	case "Docs.permiso":
+		if e.complexity.Docs.Permiso == nil {
+			break
+		}
+
+		return e.complexity.Docs.Permiso(childComplexity), true
+
+	case "Docs.Ref":
+		if e.complexity.Docs.Ref == nil {
+			break
+		}
+
+		return e.complexity.Docs.Ref(childComplexity), true
+
+	case "Docs.tipo":
+		if e.complexity.Docs.Tipo == nil {
+			break
+		}
+
+		return e.complexity.Docs.Tipo(childComplexity), true
 
 	case "Empleado.area":
 		if e.complexity.Empleado.Area == nil {
@@ -253,6 +338,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.BorrarEmpleado(childComplexity, args["dni"].(*string)), true
+
+	case "Mutation.crear_doc":
+		if e.complexity.Mutation.CrearDoc == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_crear_doc_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CrearDoc(childComplexity, args["input"].(*model.DocInput)), true
 
 	case "Mutation.crear_empleado":
 		if e.complexity.Mutation.CrearEmpleado == nil {
@@ -463,6 +560,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputDocInput,
 		ec.unmarshalInputEmployI,
 		ec.unmarshalInputPapeletaInput,
 	)
@@ -553,6 +651,32 @@ extend type Query {
   retorno: RetornoPa
 }
 
+type Docs {
+  id: Int
+  dni: String
+  doc: String
+  fecha: String
+  tipo: TiposDocs
+  permiso: PermisosDoc
+  descrip: String
+  Ref: String
+  Inicio: String
+  Fin: String
+}
+
+input DocInput {
+  dni: String
+  doc: String
+  fecha: String
+  tipo: TiposDocs
+  permiso: PermisosDoc
+  descrip: String
+  Ref: String
+  Inicio: String
+  Fin: String
+  range: Boolean
+}
+
 input PapeletaInput {
   nombre: String!
   fecha: String!
@@ -566,6 +690,29 @@ input PapeletaInput {
 enum RetornoPa {
   Y
   N
+}
+
+enum TiposDocs {
+  RESOLUCION
+  CARTA
+  INFORME
+  RENUNCIA
+  SOLICITUD
+  MEMORANDO
+}
+
+enum PermisosDoc {
+  DF
+  AC
+  JUSTIFICADO
+  XHEL
+  ONOMASTICO
+  ADELANTO
+  SANSION
+  LICENCIA
+  HORASEXTRAS
+  OMISION
+  OTROS
 }
 
 enum PermisosPapeleta {
@@ -583,6 +730,7 @@ extend type Query {
 
 type Mutation {
   crear_papeleta(input: PapeletaInput): Papeleta #OK
+  crear_doc(input: DocInput): Docs
 }
 `, BuiltIn: false},
 	{Name: "../schemas/employ.graphqls", Input: `type Empleado {
@@ -654,6 +802,21 @@ func (ec *executionContext) field_Mutation_borrar_empleado_args(ctx context.Cont
 		}
 	}
 	args["dni"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_crear_doc_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.DocInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalODocInput2ᚖvillasᚗcomᚋgraphᚋmodelᚐDocInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1093,6 +1256,416 @@ func (ec *executionContext) _Asistencia_reloj(ctx context.Context, field graphql
 func (ec *executionContext) fieldContext_Asistencia_reloj(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Asistencia",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_id(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_dni(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_dni(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Dni, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_dni(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_doc(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_doc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Doc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_doc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_fecha(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_fecha(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fecha, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_fecha(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_tipo(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_tipo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tipo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.TiposDocs)
+	fc.Result = res
+	return ec.marshalOTiposDocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐTiposDocs(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_tipo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type TiposDocs does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_permiso(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_permiso(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Permiso, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PermisosDoc)
+	fc.Result = res
+	return ec.marshalOPermisosDoc2ᚖvillasᚗcomᚋgraphᚋmodelᚐPermisosDoc(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_permiso(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type PermisosDoc does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_descrip(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_descrip(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Descrip, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_descrip(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_Ref(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_Ref(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ref, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_Ref(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_Inicio(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_Inicio(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Inicio, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_Inicio(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Docs_Fin(ctx context.Context, field graphql.CollectedField, obj *model.Docs) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Docs_Fin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Docs_Fin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Docs",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1545,6 +2118,80 @@ func (ec *executionContext) fieldContext_Mutation_crear_papeleta(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_crear_papeleta_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_crear_doc(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_crear_doc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CrearDoc(rctx, fc.Args["input"].(*model.DocInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Docs)
+	fc.Result = res
+	return ec.marshalODocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐDocs(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_crear_doc(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Docs_id(ctx, field)
+			case "dni":
+				return ec.fieldContext_Docs_dni(ctx, field)
+			case "doc":
+				return ec.fieldContext_Docs_doc(ctx, field)
+			case "fecha":
+				return ec.fieldContext_Docs_fecha(ctx, field)
+			case "tipo":
+				return ec.fieldContext_Docs_tipo(ctx, field)
+			case "permiso":
+				return ec.fieldContext_Docs_permiso(ctx, field)
+			case "descrip":
+				return ec.fieldContext_Docs_descrip(ctx, field)
+			case "Ref":
+				return ec.fieldContext_Docs_Ref(ctx, field)
+			case "Inicio":
+				return ec.fieldContext_Docs_Inicio(ctx, field)
+			case "Fin":
+				return ec.fieldContext_Docs_Fin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Docs", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_crear_doc_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4576,6 +5223,101 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputDocInput(ctx context.Context, obj interface{}) (model.DocInput, error) {
+	var it model.DocInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "dni":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dni"))
+			it.Dni, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "doc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("doc"))
+			it.Doc, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fecha":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fecha"))
+			it.Fecha, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tipo":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tipo"))
+			it.Tipo, err = ec.unmarshalOTiposDocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐTiposDocs(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "permiso":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permiso"))
+			it.Permiso, err = ec.unmarshalOPermisosDoc2ᚖvillasᚗcomᚋgraphᚋmodelᚐPermisosDoc(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "descrip":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("descrip"))
+			it.Descrip, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Ref":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Ref"))
+			it.Ref, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Inicio":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Inicio"))
+			it.Inicio, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Fin":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Fin"))
+			it.Fin, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "range":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("range"))
+			it.Range, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEmployI(ctx context.Context, obj interface{}) (model.EmployI, error) {
 	var it model.EmployI
 	asMap := map[string]interface{}{}
@@ -4763,6 +5505,67 @@ func (ec *executionContext) _Asistencia(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var docsImplementors = []string{"Docs"}
+
+func (ec *executionContext) _Docs(ctx context.Context, sel ast.SelectionSet, obj *model.Docs) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, docsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Docs")
+		case "id":
+
+			out.Values[i] = ec._Docs_id(ctx, field, obj)
+
+		case "dni":
+
+			out.Values[i] = ec._Docs_dni(ctx, field, obj)
+
+		case "doc":
+
+			out.Values[i] = ec._Docs_doc(ctx, field, obj)
+
+		case "fecha":
+
+			out.Values[i] = ec._Docs_fecha(ctx, field, obj)
+
+		case "tipo":
+
+			out.Values[i] = ec._Docs_tipo(ctx, field, obj)
+
+		case "permiso":
+
+			out.Values[i] = ec._Docs_permiso(ctx, field, obj)
+
+		case "descrip":
+
+			out.Values[i] = ec._Docs_descrip(ctx, field, obj)
+
+		case "Ref":
+
+			out.Values[i] = ec._Docs_Ref(ctx, field, obj)
+
+		case "Inicio":
+
+			out.Values[i] = ec._Docs_Inicio(ctx, field, obj)
+
+		case "Fin":
+
+			out.Values[i] = ec._Docs_Fin(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var empleadoImplementors = []string{"Empleado"}
 
 func (ec *executionContext) _Empleado(ctx context.Context, sel ast.SelectionSet, obj *model.Empleado) graphql.Marshaler {
@@ -4873,6 +5676,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_crear_papeleta(ctx, field)
+			})
+
+		case "crear_doc":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_crear_doc(ctx, field)
 			})
 
 		case "create_token":
@@ -5895,6 +6704,21 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalODocInput2ᚖvillasᚗcomᚋgraphᚋmodelᚐDocInput(ctx context.Context, v interface{}) (*model.DocInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDocInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐDocs(ctx context.Context, sel ast.SelectionSet, v *model.Docs) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Docs(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOEmpleado2ᚕᚖvillasᚗcomᚋgraphᚋmodelᚐEmpleado(ctx context.Context, sel ast.SelectionSet, v []*model.Empleado) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -6030,6 +6854,22 @@ func (ec *executionContext) unmarshalOPapeletaInput2ᚖvillasᚗcomᚋgraphᚋmo
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOPermisosDoc2ᚖvillasᚗcomᚋgraphᚋmodelᚐPermisosDoc(ctx context.Context, v interface{}) (*model.PermisosDoc, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.PermisosDoc)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPermisosDoc2ᚖvillasᚗcomᚋgraphᚋmodelᚐPermisosDoc(ctx context.Context, sel ast.SelectionSet, v *model.PermisosDoc) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalORetornoPa2ᚖvillasᚗcomᚋgraphᚋmodelᚐRetornoPa(ctx context.Context, v interface{}) (*model.RetornoPa, error) {
 	if v == nil {
 		return nil, nil
@@ -6060,6 +6900,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOTiposDocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐTiposDocs(ctx context.Context, v interface{}) (*model.TiposDocs, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.TiposDocs)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTiposDocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐTiposDocs(ctx context.Context, sel ast.SelectionSet, v *model.TiposDocs) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOToken2ᚖvillasᚗcomᚋgraphᚋmodelᚐToken(ctx context.Context, sel ast.SelectionSet, v *model.Token) graphql.Marshaler {

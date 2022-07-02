@@ -57,7 +57,6 @@ func (db *Mysql) Query(strq string, scan func(*sql.Rows) error, args ...any) err
 func (db *Mysql) Exec(strq string, args ...any) (*int64, error) {
 	query, err := db.db.Exec(strq, args...)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	id, err := query.LastInsertId()

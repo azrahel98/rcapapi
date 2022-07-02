@@ -2,8 +2,10 @@ package mysql
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
+	"github.com/go-sql-driver/mysql"
 	"villas.com/src/modelos"
 	"villas.com/src/service"
 )
@@ -81,6 +83,41 @@ func (d DocumentsImpl) Crear_Papeleta(e modelos.Papeleta) (*modelos.Papeleta, er
 		Detalle: e.Detalle,
 		Retorno: e.Retorno,
 	}, nil
+}
+
+func (d DocumentsImpl) Create_Doc(e modelos.Docs, rango bool) (*modelos.Docs, error) {
+	db, _ := service.GetInstance()
+	query := ""
+	var id int64
+	if rango {
+		query = "insert into Doc(dni,doc,fecha,TipoDoc,tipoper,descrip,ref,inicio,fin) values(?,?,?,?,?,?,?,?,?)"
+		res, err := db.Exec(query, e.Dni, e.Doc, e.Fecha, e.Tipo, e.Permi, e.Descrip, e.Ref, e.Inicio, e.Fin)
+		if err != nil {
+			me, _ := err.(*mysql.MySQLError)
+			if me.Number == 1062 {
+				return nil, errors.New("el documento ya existe")
+			}
+			return nil, err
+		}
+		id = *res
+
+	} else {
+		query = "insert into Doc(dni,doc,fecha,TipoDoc,tipoper,descrip,ref) values(?,?,?,?,?,?,?)"
+		res, err := db.Exec(query, e.Dni, e.Doc, e.Fecha, e.Tipo, e.Permi, e.Descrip, e.Ref)
+		if err != nil {
+			me, _ := err.(*mysql.MySQLError)
+			if me.Number == 1062 {
+				return nil, errors.New("el documento ya existe")
+			}
+			return nil, err
+		}
+		id = *res
+
+	}
+
+	e.Id = int(id)
+	return &e, nil
+
 }
 
 // func (d DocumentsImpl) Historial() ([]*modelos.DocHistory, error) {

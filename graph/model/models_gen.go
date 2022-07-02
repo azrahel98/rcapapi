@@ -17,6 +17,32 @@ type Asistencia struct {
 	Reloj *string `json:"reloj"`
 }
 
+type DocInput struct {
+	Dni     *string      `json:"dni"`
+	Doc     *string      `json:"doc"`
+	Fecha   *string      `json:"fecha"`
+	Tipo    *TiposDocs   `json:"tipo"`
+	Permiso *PermisosDoc `json:"permiso"`
+	Descrip *string      `json:"descrip"`
+	Ref     *string      `json:"Ref"`
+	Inicio  *string      `json:"Inicio"`
+	Fin     *string      `json:"Fin"`
+	Range   *bool        `json:"range"`
+}
+
+type Docs struct {
+	ID      *int         `json:"id"`
+	Dni     *string      `json:"dni"`
+	Doc     *string      `json:"doc"`
+	Fecha   *string      `json:"fecha"`
+	Tipo    *TiposDocs   `json:"tipo"`
+	Permiso *PermisosDoc `json:"permiso"`
+	Descrip *string      `json:"descrip"`
+	Ref     *string      `json:"Ref"`
+	Inicio  *string      `json:"Inicio"`
+	Fin     *string      `json:"Fin"`
+}
+
 type Empleado struct {
 	Dni     *string `json:"dni"`
 	Nombre  string  `json:"nombre"`
@@ -72,6 +98,65 @@ type User struct {
 	Username *string `json:"username"`
 	Password *string `json:"password"`
 	Isadmin  *bool   `json:"isadmin"`
+}
+
+type PermisosDoc string
+
+const (
+	PermisosDocDf          PermisosDoc = "DF"
+	PermisosDocAc          PermisosDoc = "AC"
+	PermisosDocJustificado PermisosDoc = "JUSTIFICADO"
+	PermisosDocXhel        PermisosDoc = "XHEL"
+	PermisosDocOnomastico  PermisosDoc = "ONOMASTICO"
+	PermisosDocAdelanto    PermisosDoc = "ADELANTO"
+	PermisosDocSansion     PermisosDoc = "SANSION"
+	PermisosDocLicencia    PermisosDoc = "LICENCIA"
+	PermisosDocHorasextras PermisosDoc = "HORASEXTRAS"
+	PermisosDocOmision     PermisosDoc = "OMISION"
+	PermisosDocOtros       PermisosDoc = "OTROS"
+)
+
+var AllPermisosDoc = []PermisosDoc{
+	PermisosDocDf,
+	PermisosDocAc,
+	PermisosDocJustificado,
+	PermisosDocXhel,
+	PermisosDocOnomastico,
+	PermisosDocAdelanto,
+	PermisosDocSansion,
+	PermisosDocLicencia,
+	PermisosDocHorasextras,
+	PermisosDocOmision,
+	PermisosDocOtros,
+}
+
+func (e PermisosDoc) IsValid() bool {
+	switch e {
+	case PermisosDocDf, PermisosDocAc, PermisosDocJustificado, PermisosDocXhel, PermisosDocOnomastico, PermisosDocAdelanto, PermisosDocSansion, PermisosDocLicencia, PermisosDocHorasextras, PermisosDocOmision, PermisosDocOtros:
+		return true
+	}
+	return false
+}
+
+func (e PermisosDoc) String() string {
+	return string(e)
+}
+
+func (e *PermisosDoc) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PermisosDoc(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PermisosDoc", str)
+	}
+	return nil
+}
+
+func (e PermisosDoc) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type PermisosPapeleta string
@@ -161,5 +246,54 @@ func (e *RetornoPa) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RetornoPa) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TiposDocs string
+
+const (
+	TiposDocsResolucion TiposDocs = "RESOLUCION"
+	TiposDocsCarta      TiposDocs = "CARTA"
+	TiposDocsInforme    TiposDocs = "INFORME"
+	TiposDocsRenuncia   TiposDocs = "RENUNCIA"
+	TiposDocsSolicitud  TiposDocs = "SOLICITUD"
+	TiposDocsMemorando  TiposDocs = "MEMORANDO"
+)
+
+var AllTiposDocs = []TiposDocs{
+	TiposDocsResolucion,
+	TiposDocsCarta,
+	TiposDocsInforme,
+	TiposDocsRenuncia,
+	TiposDocsSolicitud,
+	TiposDocsMemorando,
+}
+
+func (e TiposDocs) IsValid() bool {
+	switch e {
+	case TiposDocsResolucion, TiposDocsCarta, TiposDocsInforme, TiposDocsRenuncia, TiposDocsSolicitud, TiposDocsMemorando:
+		return true
+	}
+	return false
+}
+
+func (e TiposDocs) String() string {
+	return string(e)
+}
+
+func (e *TiposDocs) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TiposDocs(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TiposDocs", str)
+	}
+	return nil
+}
+
+func (e TiposDocs) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
