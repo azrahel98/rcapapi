@@ -7,7 +7,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -98,9 +97,9 @@ func init() {
 		log.Println(err)
 	}
 
-	//r.Run()
+	r.Run()
 
-	ginLambda = ginadapter.New(r)
+	//ginLambda = ginadapter.New(r)
 }
 
 func graphqlHandler() gin.HandlerFunc {
@@ -124,5 +123,5 @@ func playgroundHanlder() gin.HandlerFunc {
 
 func main() {
 	//log.SetFlags(log.LstdFlags | log.Lshortfile)
-	lambda.Start(Handler)
+	//lambda.Start(Handler)
 }
