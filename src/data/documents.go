@@ -94,20 +94,79 @@ func (d DocumentsData) CrearDoc(e *model.DocInput, rang bool) (*model.Docs, erro
 
 }
 
-func (d DocumentsData) BuscarDocumentosPorDNI(dni string) (*model.Papeleta, error) {
-	p, err := d.impl.FindByDniPapeletas(dni)
+func (d DocumentsData) BuscarDocumentosPorDNI(dni string, month int) ([]*model.Papeleta, error) {
+	p, err := d.impl.FindByDniPapeletas(dni, month)
 	if err != nil {
 		return nil, err
 	}
-	return &model.Papeleta{
-		ID:       &p.Id,
-		Nombre:   &p.Nombre,
-		Fecha:    &p.Fecha,
-		Empleado: &p.Dni,
-		Tipoper:  &p.Permiso,
-		Descrip:  &p.Descrip,
-		Detalle:  &p.Detalle,
-		Retorno:  (*model.RetornoPa)(&p.Retorno),
-	}, err
+	var r []*model.Papeleta
+	for _, v := range p {
+		r = append(r, &model.Papeleta{
+			ID:       &v.Id,
+			Nombre:   &v.Nombre,
+			Fecha:    &v.Fecha,
+			Empleado: &v.Dni,
+			Tipoper:  &v.Permiso,
+			Descrip:  &v.Descrip,
+			Detalle:  &v.Detalle,
+			Retorno:  (*model.RetornoPa)(&v.Retorno),
+		})
+	}
 
+	return r, nil
+}
+func (d DocumentsData) BuscarDocsByDni(dni string, month int) ([]*model.Docs, error) {
+	var docs []*model.Docs
+	p, err := d.impl.VacacionesByDNI(dni, month)
+	if err != nil {
+		return nil, err
+	}
+	r, err := d.impl.DocsByDNI(dni, month)
+	if err != nil {
+		return nil, err
+	}
+	for _, x := range r {
+		docs = append(docs, &model.Docs{
+			ID:      &x.Id,
+			Dni:     &x.Dni,
+			Doc:     &x.Doc,
+			Fecha:   &x.Fecha,
+			Descrip: &x.Descrip,
+			Ref:     &x.Ref,
+			Inicio:  &x.Inicio,
+			Fin:     &x.Fin,
+			Tipo:    (*model.TiposDocs)(&x.Tipo),
+			Permiso: (*model.PermisosDoc)(&x.Permi),
+		})
+	}
+	for _, x := range p {
+		docs = append(docs, &model.Docs{
+			ID:      &x.Id,
+			Dni:     &x.Dni,
+			Doc:     &x.Doc,
+			Fecha:   &x.Fecha,
+			Descrip: &x.Descrip,
+			Ref:     &x.Ref,
+			Inicio:  &x.Inicio,
+			Fin:     &x.Fin,
+			Tipo:    (*model.TiposDocs)(&x.Tipo),
+			Permiso: (*model.PermisosDoc)(&x.Permi),
+		})
+	}
+
+	return removeDuplicates(docs), nil
+}
+
+func removeDuplicates(values []*model.Docs) []*model.Docs {
+	keys := make(map[*model.Docs]bool)
+
+	list := []*model.Docs{}
+
+	for _, e := range values {
+		if _, val := keys[e]; !val {
+			keys[e] = true
+			list = append(list, e)
+		}
+	}
+	return list
 }

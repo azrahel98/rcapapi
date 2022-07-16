@@ -81,11 +81,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		BorrarEmpleado func(childComplexity int, dni *string) int
-		CrearDoc       func(childComplexity int, input *model.DocInput) int
-		CrearEmpleado  func(childComplexity int, input *model.EmployI) int
-		CrearPapeleta  func(childComplexity int, input *model.PapeletaInput) int
-		CreateToken    func(childComplexity int, dni *string, mes *int) int
+		CrearDoc      func(childComplexity int, input *model.DocInput) int
+		CrearPapeleta func(childComplexity int, input *model.PapeletaInput) int
+		CreateToken   func(childComplexity int, dni *string, mes *int) int
 	}
 
 	Papeleta struct {
@@ -101,7 +99,8 @@ type ComplexityRoot struct {
 
 	Query struct {
 		BuscarAsistencia func(childComplexity int, dni *string, mes *int) int
-		BuscarPapeleta   func(childComplexity int, dni *string) int
+		BuscarDocs       func(childComplexity int, dni *string, mes *int) int
+		BuscarPapeleta   func(childComplexity int, dni *string, mes *int) int
 		EmpleadoByDni    func(childComplexity int, dni *string) int
 		EmpleadosRegimen func(childComplexity int) int
 		EmpleadosSearch  func(childComplexity int, nombre *string) int
@@ -125,12 +124,11 @@ type MutationResolver interface {
 	CrearPapeleta(ctx context.Context, input *model.PapeletaInput) (*model.Papeleta, error)
 	CrearDoc(ctx context.Context, input *model.DocInput) (*model.Docs, error)
 	CreateToken(ctx context.Context, dni *string, mes *int) (*string, error)
-	CrearEmpleado(ctx context.Context, input *model.EmployI) (*model.Empleado, error)
-	BorrarEmpleado(ctx context.Context, dni *string) (*bool, error)
 }
 type QueryResolver interface {
 	BuscarAsistencia(ctx context.Context, dni *string, mes *int) ([]*model.Asistencia, error)
-	BuscarPapeleta(ctx context.Context, dni *string) (*model.Papeleta, error)
+	BuscarPapeleta(ctx context.Context, dni *string, mes *int) ([]*model.Papeleta, error)
+	BuscarDocs(ctx context.Context, dni *string, mes *int) ([]*model.Docs, error)
 	EmpleadoByDni(ctx context.Context, dni *string) (*model.Empleado, error)
 	EmpleadosRegimen(ctx context.Context) ([]*model.EmployForRegimen, error)
 	EmpleadosSearch(ctx context.Context, nombre *string) ([]*model.Empleado, error)
@@ -327,18 +325,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EmployForRegimen.Regimen(childComplexity), true
 
-	case "Mutation.borrar_empleado":
-		if e.complexity.Mutation.BorrarEmpleado == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_borrar_empleado_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.BorrarEmpleado(childComplexity, args["dni"].(*string)), true
-
 	case "Mutation.crear_doc":
 		if e.complexity.Mutation.CrearDoc == nil {
 			break
@@ -350,18 +336,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CrearDoc(childComplexity, args["input"].(*model.DocInput)), true
-
-	case "Mutation.crear_empleado":
-		if e.complexity.Mutation.CrearEmpleado == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_crear_empleado_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CrearEmpleado(childComplexity, args["input"].(*model.EmployI)), true
 
 	case "Mutation.crear_papeleta":
 		if e.complexity.Mutation.CrearPapeleta == nil {
@@ -455,6 +429,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.BuscarAsistencia(childComplexity, args["dni"].(*string), args["mes"].(*int)), true
 
+	case "Query.buscar_docs":
+		if e.complexity.Query.BuscarDocs == nil {
+			break
+		}
+
+		args, err := ec.field_Query_buscar_docs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.BuscarDocs(childComplexity, args["dni"].(*string), args["mes"].(*int)), true
+
 	case "Query.buscar_papeleta":
 		if e.complexity.Query.BuscarPapeleta == nil {
 			break
@@ -465,7 +451,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.BuscarPapeleta(childComplexity, args["dni"].(*string)), true
+		return e.complexity.Query.BuscarPapeleta(childComplexity, args["dni"].(*string), args["mes"].(*int)), true
 
 	case "Query.empleadoByDNI":
 		if e.complexity.Query.EmpleadoByDni == nil {
@@ -725,7 +711,8 @@ enum PermisosPapeleta {
 }
 
 extend type Query {
-  buscar_papeleta(dni: String): Papeleta #ok
+  buscar_papeleta(dni: String, mes: Int): [Papeleta] #ok
+  buscar_docs(dni: String, mes: Int): [Docs]
 }
 
 type Mutation {
@@ -762,10 +749,10 @@ extend type Query {
   empleados_regimen: [EmployForRegimen]
   empleados_search(nombre: String): [Empleado]
 }
-extend type Mutation {
-  crear_empleado(input: EmployI): Empleado
-  borrar_empleado(dni: String): Boolean
-}
+# extend type Mutation {
+#   # crear_empleado(input: EmployI): Empleado
+#   # borrar_empleado(dni: String): Boolean
+# }
 `, BuiltIn: false},
 	{Name: "../schemas/login.graphqls", Input: `type User {
   id: Int
@@ -790,21 +777,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_borrar_empleado_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["dni"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dni"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["dni"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_crear_doc_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -812,21 +784,6 @@ func (ec *executionContext) field_Mutation_crear_doc_args(ctx context.Context, r
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalODocInput2ᚖvillasᚗcomᚋgraphᚋmodelᚐDocInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_crear_empleado_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.EmployI
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOEmployI2ᚖvillasᚗcomᚋgraphᚋmodelᚐEmployI(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -913,6 +870,30 @@ func (ec *executionContext) field_Query_buscar_asistencia_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_buscar_docs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["dni"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dni"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["dni"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["mes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mes"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["mes"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_buscar_papeleta_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -925,6 +906,15 @@ func (ec *executionContext) field_Query_buscar_papeleta_args(ctx context.Context
 		}
 	}
 	args["dni"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["mes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mes"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["mes"] = arg1
 	return args, nil
 }
 
@@ -2250,126 +2240,6 @@ func (ec *executionContext) fieldContext_Mutation_create_token(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_crear_empleado(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_crear_empleado(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CrearEmpleado(rctx, fc.Args["input"].(*model.EmployI))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Empleado)
-	fc.Result = res
-	return ec.marshalOEmpleado2ᚖvillasᚗcomᚋgraphᚋmodelᚐEmpleado(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_crear_empleado(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "dni":
-				return ec.fieldContext_Empleado_dni(ctx, field)
-			case "nombre":
-				return ec.fieldContext_Empleado_nombre(ctx, field)
-			case "ingreso":
-				return ec.fieldContext_Empleado_ingreso(ctx, field)
-			case "area":
-				return ec.fieldContext_Empleado_area(ctx, field)
-			case "cargo":
-				return ec.fieldContext_Empleado_cargo(ctx, field)
-			case "regimen":
-				return ec.fieldContext_Empleado_regimen(ctx, field)
-			case "horario":
-				return ec.fieldContext_Empleado_horario(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Empleado", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_crear_empleado_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_borrar_empleado(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_borrar_empleado(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().BorrarEmpleado(rctx, fc.Args["dni"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_borrar_empleado(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_borrar_empleado_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Papeleta_id(ctx context.Context, field graphql.CollectedField, obj *model.Papeleta) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Papeleta_id(ctx, field)
 	if err != nil {
@@ -2778,7 +2648,7 @@ func (ec *executionContext) _Query_buscar_papeleta(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().BuscarPapeleta(rctx, fc.Args["dni"].(*string))
+		return ec.resolvers.Query().BuscarPapeleta(rctx, fc.Args["dni"].(*string), fc.Args["mes"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2787,9 +2657,9 @@ func (ec *executionContext) _Query_buscar_papeleta(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Papeleta)
+	res := resTmp.([]*model.Papeleta)
 	fc.Result = res
-	return ec.marshalOPapeleta2ᚖvillasᚗcomᚋgraphᚋmodelᚐPapeleta(ctx, field.Selections, res)
+	return ec.marshalOPapeleta2ᚕᚖvillasᚗcomᚋgraphᚋmodelᚐPapeleta(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_buscar_papeleta(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2828,6 +2698,80 @@ func (ec *executionContext) fieldContext_Query_buscar_papeleta(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_buscar_papeleta_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_buscar_docs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_buscar_docs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().BuscarDocs(rctx, fc.Args["dni"].(*string), fc.Args["mes"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Docs)
+	fc.Result = res
+	return ec.marshalODocs2ᚕᚖvillasᚗcomᚋgraphᚋmodelᚐDocs(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_buscar_docs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Docs_id(ctx, field)
+			case "dni":
+				return ec.fieldContext_Docs_dni(ctx, field)
+			case "doc":
+				return ec.fieldContext_Docs_doc(ctx, field)
+			case "fecha":
+				return ec.fieldContext_Docs_fecha(ctx, field)
+			case "tipo":
+				return ec.fieldContext_Docs_tipo(ctx, field)
+			case "permiso":
+				return ec.fieldContext_Docs_permiso(ctx, field)
+			case "descrip":
+				return ec.fieldContext_Docs_descrip(ctx, field)
+			case "Ref":
+				return ec.fieldContext_Docs_Ref(ctx, field)
+			case "Inicio":
+				return ec.fieldContext_Docs_Inicio(ctx, field)
+			case "Fin":
+				return ec.fieldContext_Docs_Fin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Docs", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_buscar_docs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -5690,18 +5634,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_create_token(ctx, field)
 			})
 
-		case "crear_empleado":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_crear_empleado(ctx, field)
-			})
-
-		case "borrar_empleado":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_borrar_empleado(ctx, field)
-			})
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5815,6 +5747,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_buscar_papeleta(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "buscar_docs":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_buscar_docs(ctx, field)
 				return res
 			}
 
@@ -6712,6 +6664,47 @@ func (ec *executionContext) unmarshalODocInput2ᚖvillasᚗcomᚋgraphᚋmodel�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalODocs2ᚕᚖvillasᚗcomᚋgraphᚋmodelᚐDocs(ctx context.Context, sel ast.SelectionSet, v []*model.Docs) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalODocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐDocs(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalODocs2ᚖvillasᚗcomᚋgraphᚋmodelᚐDocs(ctx context.Context, sel ast.SelectionSet, v *model.Docs) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -6815,14 +6808,6 @@ func (ec *executionContext) marshalOEmployForRegimen2ᚖvillasᚗcomᚋgraphᚋm
 	return ec._EmployForRegimen(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOEmployI2ᚖvillasᚗcomᚋgraphᚋmodelᚐEmployI(ctx context.Context, v interface{}) (*model.EmployI, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputEmployI(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -6837,6 +6822,47 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOPapeleta2ᚕᚖvillasᚗcomᚋgraphᚋmodelᚐPapeleta(ctx context.Context, sel ast.SelectionSet, v []*model.Papeleta) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOPapeleta2ᚖvillasᚗcomᚋgraphᚋmodelᚐPapeleta(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOPapeleta2ᚖvillasᚗcomᚋgraphᚋmodelᚐPapeleta(ctx context.Context, sel ast.SelectionSet, v *model.Papeleta) graphql.Marshaler {

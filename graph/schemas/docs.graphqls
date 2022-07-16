@@ -83,7 +83,8 @@ enum PermisosPapeleta {
 }
 
 extend type Query {
-  buscar_papeleta(dni: String): Papeleta #ok
+  buscar_papeleta(dni: String, mes: Int): [Papeleta] #ok
+  buscar_docs(dni: String, mes: Int): [Docs]
 }
 
 type Mutation {

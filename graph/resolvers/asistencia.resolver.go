@@ -33,7 +33,7 @@ func (r *mutationResolver) CreateToken(ctx context.Context, dni *string, mes *in
 }
 
 func (r *queryResolver) BuscarAsistencia(ctx context.Context, dni *string, mes *int) ([]*model.Asistencia, error) {
-	err := middleware.GraphQlErrorHandler(ctx, true)
+	err := middleware.GraphQlErrorHandler(ctx, false)
 	if err != nil {
 		return nil, err
 	}

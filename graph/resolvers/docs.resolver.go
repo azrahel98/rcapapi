@@ -46,14 +46,23 @@ func (r *mutationResolver) CrearDoc(ctx context.Context, input *model.DocInput) 
 	return d, nil
 }
 
-func (r *queryResolver) BuscarPapeleta(ctx context.Context, dni *string) (*model.Papeleta, error) {
+func (r *queryResolver) BuscarPapeleta(ctx context.Context, dni *string, mes *int) ([]*model.Papeleta, error) {
 	doc := data.NewDocumentsData(mysql.DocumentsImpl{})
 
-	p, err := doc.BuscarDocumentosPorDNI(*dni)
+	p, err := doc.BuscarDocumentosPorDNI(*dni, *mes)
 	if err != nil {
 		return nil, err
 	}
 	return p, nil
+}
+
+func (r *queryResolver) BuscarDocs(ctx context.Context, dni *string, mes *int) ([]*model.Docs, error) {
+	doc := data.NewDocumentsData(mysql.DocumentsImpl{})
+	p, err := doc.BuscarDocsByDni(*dni, *mes)
+	if err != nil {
+		return nil, err
+	}
+	return p, err
 }
 
 // Mutation returns generated.MutationResolver implementation.

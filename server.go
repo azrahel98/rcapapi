@@ -72,22 +72,22 @@ func init() {
 		ctx.JSON(200, resutl)
 
 	})
-	r.GET("/papeletas/:token", func(ctx *gin.Context) {
-		doc := data.NewDocumentsData(mysql.DocumentsImpl{})
-		token := ctx.Param("token")
-		deco, err := middleware.DecodeTokenJWT(token)
-		if err != nil {
-			ctx.JSON(404, err.Error())
-			return
-		}
-		resutl, err := doc.BuscarDocumentosPorDNI(deco.Dni)
-		if err != nil {
-			ctx.JSON(404, err.Error())
-			return
-		}
-		ctx.JSON(200, resutl)
+	// r.GET("/papeletas/:token", func(ctx *gin.Context) {
+	// 	doc := data.NewDocumentsData(mysql.DocumentsImpl{})
+	// 	token := ctx.Param("token")
+	// 	deco, err := middleware.DecodeTokenJWT(token)
+	// 	if err != nil {
+	// 		ctx.JSON(404, err.Error())
+	// 		return
+	// 	}
+	// 	resutl, err := doc.BuscarDocumentosPorDNI(deco.Dni)
+	// 	if err != nil {
+	// 		ctx.JSON(404, err.Error())
+	// 		return
+	// 	}
+	// 	ctx.JSON(200, resutl)
 
-	})
+	// })
 
 	_, err := service.GetInstance()
 	if err != nil {

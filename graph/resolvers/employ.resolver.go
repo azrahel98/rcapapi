@@ -12,44 +12,7 @@ import (
 	"villas.com/middleware"
 	"villas.com/src/data"
 	"villas.com/src/impl/mysql"
-	"villas.com/src/modelos"
 )
-
-func (r *mutationResolver) CrearEmpleado(ctx context.Context, input *model.EmployI) (*model.Empleado, error) {
-	err := middleware.GraphQlErrorHandler(ctx, false)
-	if err != nil {
-		return nil, err
-	}
-	employ := data.NewEmployData(mysql.EmpleadoImpl{})
-	em, err := employ.CreateEmploy(modelos.Employ{
-		Dni:     *input.Dni,
-		Nombre:  input.Nombre,
-		Ingreso: *input.Ingreso,
-
-		Area:  "",
-		Cargo: *input.Cargo,
-
-		Regimen: "",
-		Horario: "",
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &model.Empleado{
-		Dni:     &em.Dni,
-		Nombre:  em.Nombre,
-		Ingreso: &em.Ingreso,
-
-		Area:  &em.Area,
-		Cargo: &em.Cargo,
-
-		Regimen: &em.Regimen,
-	}, nil
-}
-
-func (r *mutationResolver) BorrarEmpleado(ctx context.Context, dni *string) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
 
 func (r *queryResolver) EmpleadoByDni(ctx context.Context, dni *string) (*model.Empleado, error) {
 	err := middleware.GraphQlErrorHandler(ctx, false)
@@ -111,6 +74,9 @@ func (r *queryResolver) EmpleadosSearch(ctx context.Context, nombre *string) ([]
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) BorrarEmpleado(ctx context.Context, dni *string) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 func (r *queryResolver) Empleado(ctx context.Context, dni *string) (*model.Empleado, error) {
 	panic(fmt.Errorf("not implemented"))
 }

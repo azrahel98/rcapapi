@@ -27,7 +27,7 @@ extend type Query {
   empleados_regimen: [EmployForRegimen]
   empleados_search(nombre: String): [Empleado]
 }
-extend type Mutation {
-  crear_empleado(input: EmployI): Empleado
-  borrar_empleado(dni: String): Boolean
-}
+# extend type Mutation {
+#   # crear_empleado(input: EmployI): Empleado
+#   # borrar_empleado(dni: String): Boolean
+# }

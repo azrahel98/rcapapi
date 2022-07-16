@@ -11,28 +11,28 @@ import (
 
 type EmpleadoImpl struct{}
 
-func (e EmpleadoImpl) Todos() (*[]modelos.Employ, error) {
-	db, err := service.GetInstance()
-	if err != nil {
-		return nil, err
-	}
-	empleados := []modelos.Employ{}
-	err = db.Query("select * from Empleado", func(r *sql.Rows) error {
-		for r.Next() {
-			var e modelos.Employ
-			err := r.Scan(&e.Dni, &e.Nombre, &e.Ingreso, &e.Area, &e.Cargo, &e.Regimen, &e.Horario)
-			if err != nil {
-				return err
-			}
-			empleados = append(empleados, e)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &empleados, nil
-}
+// func (e EmpleadoImpl) Todos() (*[]modelos.Employ, error) {
+// 	db, err := service.GetInstance()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	empleados := []modelos.Employ{}
+// 	err = db.Query("select * from Empleado", func(r *sql.Rows) error {
+// 		for r.Next() {
+// 			var e modelos.Employ
+// 			err := r.Scan(&e.Dni, &e.Nombre, &e.Ingreso, &e.Area, &e.Cargo, &e.Regimen, &e.Horario)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			empleados = append(empleados, e)
+// 		}
+// 		return nil
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &empleados, nil
+// }
 
 func (e EmpleadoImpl) SearchByDNI(dni string) (*modelos.Employ, error) {
 	if dni == "" {
@@ -60,26 +60,26 @@ func (e EmpleadoImpl) SearchByDNI(dni string) (*modelos.Employ, error) {
 	return &employ, nil
 }
 
-func (e EmpleadoImpl) Crear(em modelos.Employ) (*modelos.Employ, error) {
-	db, _ := service.GetInstance()
-	if (em == modelos.Employ{}) {
-		return nil, errors.New("campos Vacios")
-	}
-	err := db.Query("insert into Empleado(dni,nombre,ingreso,onomastico,cargo,sueldo) values(?,?,?,?,?,?)",
-		func(r *sql.Rows) error { return nil }, em.Dni, em.Nombre, em.Ingreso, em.Cargo)
-	if err != nil {
-		return nil, err
-	}
-	return &modelos.Employ{
-		Dni:     em.Dni,
-		Nombre:  em.Nombre,
-		Ingreso: em.Ingreso,
-		Area:    em.Area,
-		Cargo:   em.Cargo,
-		Regimen: "CAS",
-		Horario: "",
-	}, nil
-}
+// func (e EmpleadoImpl) Crear(em modelos.Employ) (*modelos.Employ, error) {
+// 	db, _ := service.GetInstance()
+// 	if (em == modelos.Employ{}) {
+// 		return nil, errors.New("campos Vacios")
+// 	}
+// 	err := db.Query("insert into Empleado(dni,nombre,ingreso,onomastico,cargo,sueldo) values(?,?,?,?,?,?)",
+// 		func(r *sql.Rows) error { return nil }, em.Dni, em.Nombre, em.Ingreso, em.Cargo)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &modelos.Employ{
+// 		Dni:     em.Dni,
+// 		Nombre:  em.Nombre,
+// 		Ingreso: em.Ingreso,
+// 		Area:    em.Area,
+// 		Cargo:   em.Cargo,
+// 		Regimen: "CAS",
+// 		Horario: "",
+// 	}, nil
+// }
 
 func (e EmpleadoImpl) CantidadPorRegimen() ([]*modelos.EmployeesForRegimen, error) {
 	db, _ := service.GetInstance()

@@ -38,26 +38,26 @@ type DocumentsImpl struct{}
 // 	return &doc, nil
 // }
 
-func (d DocumentsImpl) FindByDniPapeletas(dni string) (*modelos.Papeleta, error) {
+func (d DocumentsImpl) FindByDniPapeletas(dni string, month int) ([]*modelos.Papeleta, error) {
 	db, _ := service.GetInstance()
 
-	var pa modelos.Papeleta
+	var pa []*modelos.Papeleta
 
-	err := db.Query("select papeleta ,fecha ,permiso ,descr ,detalle  from Papeleta p where dni = ?", func(r *sql.Rows) error {
+	err := db.Query("select papeleta ,fecha ,permiso ,descr ,detalle  from Papeleta p where dni = ? and month(fecha) = ?", func(r *sql.Rows) error {
 		for r.Next() {
 			var p modelos.Papeleta
 			err := r.Scan(&p.Nombre, &p.Fecha, &p.Permiso, &p.Descrip, &p.Detalle)
 			if err != nil {
 				return err
 			}
-			pa = p
+			pa = append(pa, &p)
 		}
 		return nil
-	}, dni)
+	}, dni, month)
 	if err != nil {
 		return nil, err
 	}
-	return &pa, nil
+	return pa, nil
 }
 
 func (d DocumentsImpl) Crear_Papeleta(e modelos.Papeleta) (*modelos.Papeleta, error) {
@@ -118,6 +118,55 @@ func (d DocumentsImpl) Create_Doc(e modelos.Docs, rango bool) (*modelos.Docs, er
 	e.Id = int(id)
 	return &e, nil
 
+}
+
+func (d DocumentsImpl) DocsByDNI(dni string, month int) ([]*modelos.Docs, error) {
+	db, _ := service.GetInstance()
+
+	var docs []*modelos.Docs
+
+	err := db.Query("select docId ,dni,doc,fecha ,TipoDoc ,tipoper ,IFNULL(descrip,'') descrip ,IFNULL(`ref`,'') refer, IFNULL(inicio,'0000-00-00') inicio ,IFNULL(fin,'0000-00-00') fin  from Doc d where MONTH(fecha) = ? and dni = ?", func(r *sql.Rows) error {
+		for r.Next() {
+			var d modelos.Docs
+			err := r.Scan(&d.Id, &d.Dni, &d.Doc, &d.Fecha, &d.Tipo, &d.Permi, &d.Descrip, &d.Ref, &d.Inicio, &d.Fin)
+			if err != nil {
+				return err
+			}
+			docs = append(docs, &d)
+		}
+		return nil
+	}, month, dni)
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) <= 0 {
+		return make([]*modelos.Docs, 0), nil
+	}
+	return docs, nil
+}
+func (d DocumentsImpl) VacacionesByDNI(dni string, month int) ([]*modelos.Docs, error) {
+	db, _ := service.GetInstance()
+
+	var docs []*modelos.Docs
+
+	err := db.Query("select docId ,dni,doc,fecha ,TipoDoc ,tipoper ,IFNULL(descrip,'') descrip ,IFNULL(`ref`,'') refer, IFNULL(inicio,'0000-00-00') inicio ,IFNULL(fin,'0000-00-00') fin  from Doc d where MONTH(fin) >= ?  and d.dni  = ?", func(r *sql.Rows) error {
+		for r.Next() {
+			var d modelos.Docs
+			err := r.Scan(&d.Id, &d.Dni, &d.Doc, &d.Fecha, &d.Tipo, &d.Permi, &d.Descrip, &d.Ref, &d.Inicio, &d.Fin)
+			if err != nil {
+				return err
+			}
+			docs = append(docs, &d)
+		}
+		return nil
+	}, month, dni)
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) <= 0 {
+		return make([]*modelos.Docs, 0), nil
+	}
+	return docs, nil
 }
 
 // func (d DocumentsImpl) Historial() ([]*modelos.DocHistory, error) {

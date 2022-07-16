@@ -42,14 +42,6 @@ func (imp EmployData) FindByID(dni string) (*modelos.Employ, error) {
 	return employ, nil
 }
 
-func (imp EmployData) CreateEmploy(e modelos.Employ) (*modelos.Employ, error) {
-	emp, err := imp.impl.Crear(e)
-	if err != nil {
-		return nil, err
-	}
-	return emp, nil
-}
-
 func (imp EmployData) TrabajadoresxRegimen() ([]*model.EmployForRegimen, error) {
 	res, err := imp.impl.CantidadPorRegimen()
 	if err != nil {
