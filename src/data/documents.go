@@ -139,34 +139,78 @@ func (d DocumentsData) BuscarDocsByDni(dni string, month int) ([]*model.Docs, er
 			Permiso: (*model.PermisosDoc)(&x.Permi),
 		})
 	}
-	for _, x := range p {
-		docs = append(docs, &model.Docs{
-			ID:      &x.Id,
-			Dni:     &x.Dni,
-			Doc:     &x.Doc,
-			Fecha:   &x.Fecha,
-			Descrip: &x.Descrip,
-			Ref:     &x.Ref,
-			Inicio:  &x.Inicio,
-			Fin:     &x.Fin,
-			Tipo:    (*model.TiposDocs)(&x.Tipo),
-			Permiso: (*model.PermisosDoc)(&x.Permi),
-		})
-	}
 
-	return removeDuplicates(docs), nil
-}
+	if len(docs) > 0 {
+		for _, v := range p {
+			for _, x := range docs {
+				if v.Doc != *x.Doc {
+					docs = append(docs, &model.Docs{
+						ID:      &v.Id,
+						Dni:     &v.Dni,
+						Doc:     &v.Doc,
+						Fecha:   &v.Fecha,
+						Descrip: &v.Descrip,
+						Ref:     &v.Ref,
+						Inicio:  &v.Inicio,
+						Fin:     &v.Fin,
+						Tipo:    (*model.TiposDocs)(&v.Tipo),
+						Permiso: (*model.PermisosDoc)(&v.Permi),
+					})
+				}
+			}
 
-func removeDuplicates(values []*model.Docs) []*model.Docs {
-	keys := make(map[*model.Docs]bool)
-
-	list := []*model.Docs{}
-
-	for _, e := range values {
-		if _, val := keys[e]; !val {
-			keys[e] = true
-			list = append(list, e)
+		}
+	} else {
+		for _, x := range p {
+			docs = append(docs, &model.Docs{
+				ID:      &x.Id,
+				Dni:     &x.Dni,
+				Doc:     &x.Doc,
+				Fecha:   &x.Fecha,
+				Descrip: &x.Descrip,
+				Ref:     &x.Ref,
+				Inicio:  &x.Inicio,
+				Fin:     &x.Fin,
+				Tipo:    (*model.TiposDocs)(&x.Tipo),
+				Permiso: (*model.PermisosDoc)(&x.Permi),
+			})
 		}
 	}
-	return list
+
+	return unique(docs), nil
+}
+func (d DocumentsData) Update_Papeleta(papeleta model.PapeletaInput) (*model.Papeleta, error) {
+
+	res, err := d.impl.Update_Papeleta(modelos.Papeleta{
+		Nombre:  papeleta.Nombre,
+		Fecha:   papeleta.Fecha,
+		Permiso: string(papeleta.TipoP),
+		Descrip: papeleta.Descrip,
+		Detalle: papeleta.Detalle,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &model.Papeleta{
+		ID:       &res.Id,
+		Nombre:   &res.Nombre,
+		Fecha:    &res.Fecha,
+		Empleado: &res.Dni,
+		Tipoper:  &res.Permiso,
+		Descrip:  &res.Descrip,
+		Detalle:  &res.Detalle,
+		Retorno:  (*model.RetornoPa)(&res.Retorno),
+	}, nil
+}
+
+func unique(s []*model.Docs) []*model.Docs {
+	inResult := make(map[*model.Docs]bool)
+	var result []*model.Docs
+	for _, str := range s {
+		if _, ok := inResult[str]; !ok {
+			inResult[str] = true
+			result = append(result, str)
+		}
+	}
+	return result
 }

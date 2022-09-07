@@ -90,4 +90,5 @@ extend type Query {
 type Mutation {
   crear_papeleta(input: PapeletaInput): Papeleta #OK
   crear_doc(input: DocInput): Docs
+  update_papeleta(input: PapeletaInput): Papeleta
 }

@@ -149,7 +149,7 @@ func (d DocumentsImpl) VacacionesByDNI(dni string, month int) ([]*modelos.Docs, 
 
 	var docs []*modelos.Docs
 
-	err := db.Query("select docId ,dni,doc,fecha ,TipoDoc ,tipoper ,IFNULL(descrip,'') descrip ,IFNULL(`ref`,'') refer, IFNULL(inicio,'0000-00-00') inicio ,IFNULL(fin,'0000-00-00') fin  from Doc d where MONTH(fin) >= ?  and d.dni  = ?", func(r *sql.Rows) error {
+	err := db.Query("select docId ,dni,doc,fecha ,TipoDoc ,tipoper ,IFNULL(descrip,'') descrip ,IFNULL(`ref`,'') refer, IFNULL(inicio,'0000-00-00') inicio ,IFNULL(fin,'0000-00-00') fin  from Doc d where MONTH(inicio) <= ? and MONTH(fin) >= ? and d.dni  = ?", func(r *sql.Rows) error {
 		for r.Next() {
 			var d modelos.Docs
 			err := r.Scan(&d.Id, &d.Dni, &d.Doc, &d.Fecha, &d.Tipo, &d.Permi, &d.Descrip, &d.Ref, &d.Inicio, &d.Fin)
@@ -159,7 +159,7 @@ func (d DocumentsImpl) VacacionesByDNI(dni string, month int) ([]*modelos.Docs, 
 			docs = append(docs, &d)
 		}
 		return nil
-	}, month, dni)
+	}, month, month, dni)
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +167,17 @@ func (d DocumentsImpl) VacacionesByDNI(dni string, month int) ([]*modelos.Docs, 
 		return make([]*modelos.Docs, 0), nil
 	}
 	return docs, nil
+}
+
+func (d DocumentsImpl) Update_Papeleta(p modelos.Papeleta) (*modelos.Papeleta, error) {
+	db, _ := service.GetInstance()
+
+	_, err := db.Exec("UPDATE rcap.Papeleta SET papeleta=?,descr=?,detalle=?,fecha=?,permiso=? WHERE papeleta=?",
+		p.Nombre, p.Descrip, p.Detalle, p.Fecha, p.Permiso, p.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
 }
 
 // func (d DocumentsImpl) Historial() ([]*modelos.DocHistory, error) {

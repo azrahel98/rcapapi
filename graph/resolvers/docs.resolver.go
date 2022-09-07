@@ -46,6 +46,16 @@ func (r *mutationResolver) CrearDoc(ctx context.Context, input *model.DocInput) 
 	return d, nil
 }
 
+func (r *mutationResolver) UpdatePapeleta(ctx context.Context, input *model.PapeletaInput) (*model.Papeleta, error) {
+	doc := data.NewDocumentsData(mysql.DocumentsImpl{})
+
+	p, err := doc.Update_Papeleta(*input)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
 func (r *queryResolver) BuscarPapeleta(ctx context.Context, dni *string, mes *int) ([]*model.Papeleta, error) {
 	doc := data.NewDocumentsData(mysql.DocumentsImpl{})
 

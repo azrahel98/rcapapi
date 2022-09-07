@@ -7,6 +7,15 @@ type Asistencia {
   reloj: String
 }
 
+type AsistDetalle {
+  dni: String
+  fecha: String
+  acuenta: String
+  df: String
+  detalle: String
+  falta: String
+}
+
 extend type Mutation {
   create_token(dni: String, mes: Int): String
 }

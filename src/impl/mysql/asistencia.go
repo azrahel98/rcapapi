@@ -13,7 +13,7 @@ type AsistenciaImpl struct{}
 func (a AsistenciaImpl) Buscar_Asistencia(dni string, mes int) ([]*modelos.Asistencia, error) {
 	db, _ := service.GetInstance()
 	var data []*modelos.Asistencia
-	err := db.Query("select IFNULL(dni,'NA') dni ,IFNULL(nombre,'NA')nombre ,IFNULL(hora,'NA') hora ,IFNULL(fecha,'NA') , IFNULL(reloj,'NA') reloj  from Asiste a where dni = ? and MONTH (fecha) = ?",
+	err := db.Query("select IFNULL(dni,'NA') dni ,IFNULL(nombre,'NA')nombre ,IFNULL(LEFT(hora,5),'NA') hora ,IFNULL(fecha,'NA') , IFNULL(reloj,'NA') reloj  from Asiste a where dni = ? and MONTH (fecha) = ?",
 		func(r *sql.Rows) error {
 			for r.Next() {
 				var a modelos.Asistencia
